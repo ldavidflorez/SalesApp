@@ -11,18 +11,19 @@ import java.time.LocalDateTime;
 public class Items {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", referencedColumnName = "id", nullable = false)
     private Order order;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", referencedColumnName = "id", nullable = false)
     private Product product;
 
     @Column(name = "unit_price", nullable = false)
@@ -34,19 +35,6 @@ public class Items {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    // Constructors, getters, and setters
-
-    public Items() {
-    }
-
-    public Items(Order order, User user, Product product, BigDecimal unitPrice, Integer unitNumber) {
-        this.order = order;
-        this.user = user;
-        this.product = product;
-        this.unitPrice = unitPrice;
-        this.unitNumber = unitNumber;
-    }
 
     public Long getId() {
         return id;

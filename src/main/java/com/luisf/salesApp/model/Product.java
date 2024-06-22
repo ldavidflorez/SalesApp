@@ -5,12 +5,14 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     @Column(nullable = false)
@@ -28,6 +30,9 @@ public class Product {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<Items> items;
 
     public Long getId() {
         return id;
@@ -75,5 +80,13 @@ public class Product {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public List<Items> getItems() {
+        return items;
+    }
+
+    public void setItems(List<Items> items) {
+        this.items = items;
     }
 }

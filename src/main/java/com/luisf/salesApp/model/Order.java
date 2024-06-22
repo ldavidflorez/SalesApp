@@ -5,16 +5,18 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
 
     @CreationTimestamp
@@ -53,6 +55,9 @@ public class Order {
 
     @Column(name = "next_collection_date")
     private LocalDateTime nextCollectionDate;
+
+    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
+    private List<Items> items;
 
     public Long getId() {
         return id;
@@ -164,5 +169,13 @@ public class Order {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public List<Items> getItems() {
+        return items;
+    }
+
+    public void setItems(List<Items> items) {
+        this.items = items;
     }
 }
