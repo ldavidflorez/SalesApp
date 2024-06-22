@@ -1,5 +1,6 @@
 package com.luisf.salesApp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -8,6 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
+@JsonIgnoreProperties(value = {"orders", "hibernateLazyInitializer"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -92,18 +94,25 @@ public class User {
         this.createdAt =  LocalDateTime.now();
     }
 
-    @PrePersist
-    protected void onCreate() {
-        if (role == null) {
-            role = "user";
-        }
-    }
-
     public List<Order> getOrders() {
         return orders;
     }
 
     public void setOrders(List<Order> orders) {
         this.orders = orders;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", lastname='" + lastname + '\'' +
+                ", password='" + password + '\'' +
+                ", role='" + role + '\'' +
+                ", email='" + email + '\'' +
+                ", createdAt=" + createdAt +
+                ", orders=" + orders +
+                '}';
     }
 }

@@ -91,4 +91,17 @@ public class Items {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    @Override
+    public String toString() {
+        return "Items{" +
+                "id=" + id +
+                ", order=" + order +
+                ", user=" + user +
+                ", product=" + product +
+                ", unitPrice=" + unitPrice +
+                ", unitNumber=" + unitNumber +
+                ", createdAt=" + createdAt +
+                '}';
+    }
 }

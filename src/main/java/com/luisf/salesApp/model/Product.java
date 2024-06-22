@@ -89,4 +89,17 @@ public class Product {
     public void setItems(List<Items> items) {
         this.items = items;
     }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", ref='" + ref + '\'' +
+                ", basePrice=" + basePrice +
+                ", perDiscount=" + perDiscount +
+                ", createdAt=" + createdAt +
+                ", items=" + items +
+                '}';
+    }
 }

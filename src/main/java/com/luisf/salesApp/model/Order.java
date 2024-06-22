@@ -1,5 +1,6 @@
 package com.luisf.salesApp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "orders")
+@JsonIgnoreProperties(value = {"items", "hibernateLazyInitializer"})
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -177,5 +179,26 @@ public class Order {
 
     public void setItems(List<Items> items) {
         this.items = items;
+    }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "id=" + id +
+                ", user=" + user +
+                ", createdAt=" + createdAt +
+                ", type='" + type + '\'' +
+                ", totalItems=" + totalItems +
+                ", totalPrice=" + totalPrice +
+                ", status='" + status + '\'' +
+                ", initDate=" + initDate +
+                ", endDate=" + endDate +
+                ", completeFees=" + completeFees +
+                ", remainingFees=" + remainingFees +
+                ", timeToPayInDays=" + timeToPayInDays +
+                ", feeValue=" + feeValue +
+                ", nextCollectionDate=" + nextCollectionDate +
+                ", items=" + items +
+                '}';
     }
 }
