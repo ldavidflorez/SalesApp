@@ -21,6 +21,9 @@ public class Product {
     @Column(nullable = false)
     private String ref;
 
+    @Column(nullable = false)
+    private String description;
+
     @Column(name = "base_price", nullable = false)
     private BigDecimal basePrice;
 

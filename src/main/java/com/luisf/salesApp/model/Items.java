@@ -1,5 +1,6 @@
 package com.luisf.salesApp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "items")
+@JsonIgnoreProperties(value = {"order", "user", "product", "hibernateLazyInitializer"})
 public class Items {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

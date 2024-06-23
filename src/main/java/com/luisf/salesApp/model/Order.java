@@ -10,7 +10,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "orders")
-@JsonIgnoreProperties(value = {"items", "hibernateLazyInitializer"})
+@JsonIgnoreProperties(value = {"user", "items", "hibernateLazyInitializer"})
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
