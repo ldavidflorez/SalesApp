@@ -1,6 +1,7 @@
 package com.luisf.salesApp.repository;
 
 import com.luisf.salesApp.model.Order;
+import com.luisf.salesApp.model.Payment;
 import com.luisf.salesApp.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,4 +14,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT o FROM Order o WHERE o.id = :orderId AND o.user.id = :userId")
     Optional<Order> getOrderById(@Param("userId") Long userId, @Param("orderId") Long orderId);
+
+    @Query("SELECT p FROM Payment p WHERE p.id = :paymentId AND p.user.id = :userId")
+    Optional<Payment> getPaymentById(@Param("userId") Long userId, @Param("paymentId") Long paymentId);
 }

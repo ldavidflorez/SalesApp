@@ -1,6 +1,7 @@
 package com.luisf.salesApp.service;
 
 import com.luisf.salesApp.model.Order;
+import com.luisf.salesApp.model.Payment;
 import com.luisf.salesApp.model.User;
 
 import java.util.List;
@@ -20,4 +21,8 @@ public interface UserService {
     List<Order> getAllOrders(Long userId);
 
     Optional<Order> getOrderById(Long userId, Long orderId);
+
+    List<Payment> getAllPayments(Long userId);
+
+    Optional<Payment> getPaymentById(Long userId, Long paymentId);
 }

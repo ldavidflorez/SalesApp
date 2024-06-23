@@ -34,3 +34,11 @@ INSERT INTO items (order_id, user_id, product_id, unit_price, unit_number, creat
 (4, 3, 5, 200.75, 1, NOW()),
 (5, 2, 1, 100.00, 1, NOW()),
 (5, 2, 3, 120.25, 1, NOW());
+
+-- Insert dummy data into payments table
+INSERT INTO payments (order_id, user_id, pay_quantity, created_at) VALUES
+(1, 1, 100.00, NOW()),
+(2, 2, 150.75, NOW()),
+(3, 1, 200.50, NOW()),
+(4, 3, 250.25, NOW()),
+(5, 2, 300.00, NOW());

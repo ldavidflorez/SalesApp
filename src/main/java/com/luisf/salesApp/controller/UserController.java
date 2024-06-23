@@ -1,6 +1,7 @@
 package com.luisf.salesApp.controller;
 
 import com.luisf.salesApp.model.Order;
+import com.luisf.salesApp.model.Payment;
 import com.luisf.salesApp.model.User;
 import com.luisf.salesApp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,18 @@ public class UserController {
     public ResponseEntity<Optional<Order>> getOrderById(@PathVariable Long userId, @PathVariable Long orderId) {
         Optional<Order> order = userService.getOrderById(userId, orderId);
         return ResponseEntity.ok(order);
+    }
+
+    @GetMapping("/{id}/payments")
+    public ResponseEntity<List<Payment>> getAllPayments(@PathVariable Long id) {
+        List<Payment> payments = userService.getAllPayments(id);
+        return ResponseEntity.ok(payments);
+    }
+
+    @GetMapping("/{userId}/payments/{paymentId}")
+    public ResponseEntity<Optional<Payment>> getPaymentById(@PathVariable Long userId, @PathVariable Long paymentId) {
+        Optional<Payment> payment = userService.getPaymentById(userId, paymentId);
+        return ResponseEntity.ok(payment);
     }
 
     @PostMapping

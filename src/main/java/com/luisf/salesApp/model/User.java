@@ -9,7 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
-@JsonIgnoreProperties(value = {"orders", "hibernateLazyInitializer"})
+@JsonIgnoreProperties(value = {"orders", "payments", "hibernateLazyInitializer"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,6 +37,9 @@ public class User {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Order> orders;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Payment> payments;
 
     public Long getId() {
         return id;
@@ -102,6 +105,14 @@ public class User {
         this.orders = orders;
     }
 
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -113,6 +124,7 @@ public class User {
                 ", email='" + email + '\'' +
                 ", createdAt=" + createdAt +
                 ", orders=" + orders +
+                ", payments=" + payments +
                 '}';
     }
 }

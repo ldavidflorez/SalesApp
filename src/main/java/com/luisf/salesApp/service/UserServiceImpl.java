@@ -1,6 +1,7 @@
 package com.luisf.salesApp.service;
 
 import com.luisf.salesApp.model.Order;
+import com.luisf.salesApp.model.Payment;
 import com.luisf.salesApp.model.User;
 import com.luisf.salesApp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,5 +60,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<Order> getOrderById(Long userId, Long orderId) {
         return Optional.ofNullable(userRepository.getOrderById(userId, orderId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found")));
+    }
+
+    @Override
+    public List<Payment> getAllPayments(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
+        return user.getPayments();
+    }
+
+    @Override
+    public Optional<Payment> getPaymentById(Long userId, Long paymentId) {
+        return Optional.ofNullable(userRepository.getPaymentById(userId, paymentId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found")));
     }
 }

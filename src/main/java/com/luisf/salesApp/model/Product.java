@@ -93,12 +93,21 @@ public class Product {
         this.items = items;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     @Override
     public String toString() {
         return "Product{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", ref='" + ref + '\'' +
+                ", description='" + description + '\'' +
                 ", basePrice=" + basePrice +
                 ", perDiscount=" + perDiscount +
                 ", createdAt=" + createdAt +
