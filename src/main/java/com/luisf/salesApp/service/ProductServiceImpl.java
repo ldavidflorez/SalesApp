@@ -3,9 +3,7 @@ package com.luisf.salesApp.service;
 import com.luisf.salesApp.model.Product;
 import com.luisf.salesApp.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +14,8 @@ public class ProductServiceImpl implements ProductService{
     private ProductRepository productRepository;
 
     @Override
-    public Product save(Product product) {
-        return productRepository.save(product);
+    public void save(Product product) {
+        productRepository.save(product);
     }
 
     @Override
@@ -27,24 +25,33 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     public Optional<Product> getById(Long id) {
-        return Optional.ofNullable(productRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "product not found")));
+        return productRepository.findById(id);
     }
 
     @Override
     public Optional<Product> update(Long id, Product newProduct) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "product not found"));
+        Optional<Product> optionalProduct = productRepository.findById(id);
 
-        product.setName(newProduct.getName());
-        product.setRef(newProduct.getRef());
-        product.setBasePrice(newProduct.getBasePrice());
-        product.setPerDiscount(newProduct.getPerDiscount());
+        if (optionalProduct.isPresent()) {
+            Product product = optionalProduct.get();
+            product.setName(newProduct.getName());
+            product.setRef(newProduct.getRef());
+            product.setDescription(newProduct.getDescription());
+            product.setBasePrice(newProduct.getBasePrice());
+            product.setPerDiscount(newProduct.getPerDiscount());
 
-        return Optional.of(productRepository.save(product));
+            return Optional.of(productRepository.save(product));
+        }
+
+        return Optional.empty();
     }
 
     @Override
-    public void delete(Long id) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "product not found"));
-        productRepository.delete(product);
+    public boolean delete(Long id) {
+        if (productRepository.existsById(id)){
+            productRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "items")
-@JsonIgnoreProperties(value = {"order", "user", "product", "hibernateLazyInitializer"})
+@JsonIgnoreProperties(value = {"order", "customer", "product", "hibernateLazyInitializer"})
 public class Items {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,8 +21,8 @@ public class Items {
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    private User user;
+    @JoinColumn(name = "customer_id", referencedColumnName = "id", nullable = false)
+    private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", referencedColumnName = "id", nullable = false)
@@ -54,12 +54,12 @@ public class Items {
         this.order = order;
     }
 
-    public User getUser() {
-        return user;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
     public Product getProduct() {
@@ -99,7 +99,7 @@ public class Items {
         return "Items{" +
                 "id=" + id +
                 ", order=" + order +
-                ", user=" + user +
+                ", customer=" + customer +
                 ", product=" + product +
                 ", unitPrice=" + unitPrice +
                 ", unitNumber=" + unitNumber +

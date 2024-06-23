@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductService {
-    Product save(Product product);
+    void save(Product product);
 
     List<Product> getAll();
 
@@ -14,5 +14,5 @@ public interface ProductService {
 
     Optional<Product> update(Long id, Product newProduct);
 
-    void delete(Long id);
+    boolean delete(Long id);
 }

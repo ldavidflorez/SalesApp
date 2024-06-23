@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "customers")
 @JsonIgnoreProperties(value = {"orders", "payments", "hibernateLazyInitializer"})
-public class User {
+public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -35,10 +35,10 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     private List<Order> orders;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     private List<Payment> payments;
 
     public Long getId() {
@@ -115,7 +115,7 @@ public class User {
 
     @Override
     public String toString() {
-        return "User{" +
+        return "Customer{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", lastname='" + lastname + '\'' +

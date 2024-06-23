@@ -1,6 +1,7 @@
 package com.luisf.salesApp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -20,8 +21,8 @@ public class Payment {
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    private User user;
+    @JoinColumn(name = "customer_id", referencedColumnName = "id", nullable = false)
+    private Customer customer;
 
     @Column(name = "pay_quantity", nullable = false)
     private BigDecimal payQuantity;
@@ -61,20 +62,30 @@ public class Payment {
         this.order = order;
     }
 
-    public User getUser() {
-        return user;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
+    @JsonProperty("order")
+    public Long getOrderId() {
+        return order != null ? order.getId() : null;
+    }
+
+    @JsonProperty("customer")
+    public Long getCustomerId() {
+        return customer != null ? customer.getId() : null;
     }
 
     @Override
     public String toString() {
         return "Payment{" +
                 "id=" + id +
-                ", order=" + order +
-                ", user=" + user +
+                ", order=" + getOrderId() +
+                ", customer=" + getCustomerId() +
                 ", payQuantity=" + payQuantity +
                 ", createdAt=" + createdAt +
                 '}';

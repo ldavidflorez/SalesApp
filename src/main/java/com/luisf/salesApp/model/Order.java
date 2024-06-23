@@ -10,7 +10,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "orders")
-@JsonIgnoreProperties(value = {"user", "items", "payments", "hibernateLazyInitializer"})
+@JsonIgnoreProperties(value = {"customer", "items", "payments", "hibernateLazyInitializer"})
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,8 +18,8 @@ public class Order {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    private User user;
+    @JoinColumn(name = "customer_id", referencedColumnName = "id", nullable = false)
+    private Customer customer;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -168,12 +168,12 @@ public class Order {
         this.nextCollectionDate = nextCollectionDate;
     }
 
-    public User getUser() {
-        return user;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
     public List<Items> getItems() {
@@ -196,7 +196,7 @@ public class Order {
     public String toString() {
         return "Order{" +
                 "id=" + id +
-                ", user=" + user +
+                ", customer=" + customer +
                 ", createdAt=" + createdAt +
                 ", type='" + type + '\'' +
                 ", totalItems=" + totalItems +
