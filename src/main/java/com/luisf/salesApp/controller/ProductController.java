@@ -21,6 +21,11 @@ public class ProductController {
         return productService.getAll();
     }
 
+    @GetMapping("/state")
+    public List<Product> getAllByStatus(@RequestParam boolean available) {
+        return productService.getAllByStatus(available);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Optional<Product>> getById(@PathVariable Long id) {
         Optional<Product> product = productService.getById(id);

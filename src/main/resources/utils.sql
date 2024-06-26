@@ -10,6 +10,7 @@ CREATE PROCEDURE CreateNewOrder(
     IN remainingFees INT,
     IN timeToPayInDays INT,
     IN itemsJson TEXT,
+    IN increment DECIMAL(10, 2),
     OUT orderIdGenerated INT
 )
 BEGIN
@@ -25,9 +26,17 @@ BEGIN
     DECLARE feeValue DECIMAL(10, 2);
     DECLARE endDate DATETIME;
     DECLARE nextCollectionDate DATETIME;
+    DECLARE state BIT(1);
 
     -- Declare variables for error handling
     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SET orderIdGenerated = 0;
+    END;
+
+    -- Declare handler for custom signal
+    DECLARE CONTINUE HANDLER FOR SQLSTATE '45000'
     BEGIN
         ROLLBACK;
         SET orderIdGenerated = 0;
@@ -46,11 +55,16 @@ BEGIN
         SET productId = JSON_UNQUOTE(JSON_EXTRACT(item, '$.productId'));
         SET unitNumber = JSON_UNQUOTE(JSON_EXTRACT(item, '$.unitNumber'));
 
-        -- Check if the product exists and get its price and discount
-        SELECT base_price, per_discount
-        INTO unitPrice, discount
+        -- Check if the product exists and get its price, discount, and availability state
+        SELECT base_price, per_discount, available
+        INTO unitPrice, discount, state
         FROM products
         WHERE id = productId;
+
+        -- Check the availability state and rollback if not available
+        IF state = b'0' THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Product not available';
+        END IF;
 
         -- Calculate the price for this item after discount
         SET itemPrice = unitPrice * unitNumber * (1 - discount / 100);
@@ -68,11 +82,11 @@ BEGIN
 
     -- Calculate nextCollectionDate and fee_value based on orderType
     IF orderType = 'FEE_15' THEN
-        SET totalPrice = totalPrice * 1.025; -- Increment by 2.5%
+        SET totalPrice = totalPrice * increment; -- Increment by increment%
         SET feeValue = totalPrice / (timeToPayInDays / 15);
         SET nextCollectionDate = DATE_ADD(initDate, INTERVAL 15 DAY);
     ELSEIF orderType = 'FEE_30' THEN
-        SET totalPrice = totalPrice * 1.055; -- Increment by 5.5%
+        SET totalPrice = totalPrice * increment; -- Increment by increment%
         SET feeValue = totalPrice / (timeToPayInDays / 30);
         SET nextCollectionDate = DATE_ADD(initDate, INTERVAL 30 DAY);
     ELSE
@@ -95,14 +109,17 @@ BEGIN
         SET unitNumber = JSON_UNQUOTE(JSON_EXTRACT(item, '$.unitNumber'));
 
         -- Check if the product exists and get its price
-        SELECT base_price
-        INTO unitPrice
+        SELECT base_price, per_discount
+        INTO unitPrice, discount
         FROM products
         WHERE id = productId;
 
+        -- Calculate the price for this item after discount plus fee increment
+        SET itemPrice = (unitPrice * unitNumber * (1 - discount / 100)) * increment;
+
         -- Insert each item into the items table
         INSERT INTO items (order_id, customer_id, product_id, unit_price, unit_number, created_at)
-        VALUES (@orderId, customerId, productId, unitPrice, unitNumber, NOW());
+        VALUES (@orderId, customerId, productId, itemPrice, unitNumber, NOW());
 
         -- Increment loop counter
         SET @i = @i + 1;
@@ -125,8 +142,12 @@ CALL CreateNewOrder(
     1, -- completeFees
     0, -- remainingFees
     0, -- timeToPayInDays
-    '[{"productId": 1, "unitNumber": 2}, {"productId": 2, "unitNumber": 1}]' -- items JSON
+    '[{"productId": 1, "unitNumber": 2}, {"productId": 2, "unitNumber": 1}]', -- items JSON
+    1.00, -- increment factor
+    @status
 );
+-- Check the value of @status
+SELECT @status;
 
 CALL CreateNewOrder(
     1, -- customerId
@@ -136,8 +157,12 @@ CALL CreateNewOrder(
     0, -- completeFees
     5, -- remainingFees
     75, -- timeToPayInDays
-    '[{"productId": 1, "unitNumber": 2}, {"productId": 2, "unitNumber": 1}]' -- items JSON
+    '[{"productId": 1, "unitNumber": 2}, {"productId": 2, "unitNumber": 1}]', -- items JSON
+    1.05, -- increment factor
+    @status
 );
+-- Check the value of @status
+SELECT @status;
 
 CALL CreateNewOrder(
     1, -- customerId
@@ -147,5 +172,9 @@ CALL CreateNewOrder(
     0, -- completeFees
     2, -- remainingFees
     60, -- timeToPayInDays
-    '[{"productId": 1, "unitNumber": 2}, {"productId": 2, "unitNumber": 1}]' -- items JSON
+    '[{"productId": 1, "unitNumber": 2}, {"productId": 2, "unitNumber": 1}]', -- items JSON
+    1.10, -- increment factor
+    @status
 );
+-- Check the value of @status
+SELECT @status;

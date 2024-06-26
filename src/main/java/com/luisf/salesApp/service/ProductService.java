@@ -10,6 +10,8 @@ public interface ProductService {
 
     List<Product> getAll();
 
+    List<Product> getAllByStatus(boolean status);
+
     Optional<Product> getById(Long id);
 
     Optional<Product> update(Long id, Product newProduct);

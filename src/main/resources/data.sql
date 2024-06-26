@@ -16,12 +16,12 @@ VALUES
 (2, NOW(), 'FEE_30', 2, 220.25, 'Pending', NOW(), DATE_ADD(NOW(), INTERVAL 360 DAY), 4, 8, 360, 18.35, DATE_ADD(NOW(), INTERVAL 20 DAY));
 
 -- Insert dummy data into products table
-INSERT INTO products (name, ref, description, base_price, per_discount, created_at) VALUES
-('Product A', 'PROD001', 'Product A description', 100.00, 0.00, NOW()),
-('Product B', 'PROD002', 'Product B description', 75.50, 0.00, NOW()),
-('Product C', 'PROD003', 'Product C description', 120.25, 0.00, NOW()),
-('Product D', 'PROD004', 'Product D description', 50.00, 0.00, NOW()),
-('Product E', 'PROD005', 'Product E description', 200.75, 0.00, NOW());
+INSERT INTO products (name, ref, description, base_price, per_discount, available, created_at) VALUES
+('Product A', 'PROD001', 'Product A description', 100.00, 0.00, 1, NOW()),
+('Product B', 'PROD002', 'Product B description', 75.50, 0.00, 1, NOW()),
+('Product C', 'PROD003', 'Product C description', 120.25, 0.00, 0, NOW()),
+('Product D', 'PROD004', 'Product D description', 50.00, 0.00, 1, NOW()),
+('Product E', 'PROD005', 'Product E description', 200.75, 0.00, 0, NOW());
 
 -- Insert dummy data into items table
 INSERT INTO items (order_id, customer_id, product_id, unit_price, unit_number, created_at) VALUES

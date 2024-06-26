@@ -32,12 +32,23 @@ public class Product {
     @Column(name = "per_discount", nullable = false)
     private BigDecimal perDiscount;
 
+    @Column(nullable = false)
+    private boolean available;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<Items> items;
+
+    public boolean isAvailable() {
+        return available;
+    }
+
+    public void setAvailable(boolean available) {
+        this.available = available;
+    }
 
     public Long getId() {
         return id;
