@@ -1,7 +1,6 @@
 package com.luisf.salesApp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -70,22 +69,12 @@ public class Payment {
         this.customer = customer;
     }
 
-    @JsonProperty("order")
-    public Long getOrderId() {
-        return order != null ? order.getId() : null;
-    }
-
-    @JsonProperty("customer")
-    public Long getCustomerId() {
-        return customer != null ? customer.getId() : null;
-    }
-
     @Override
     public String toString() {
         return "Payment{" +
                 "id=" + id +
-                ", order=" + getOrderId() +
-                ", customer=" + getCustomerId() +
+                ", order=" + order +
+                ", customer=" + customer +
                 ", payQuantity=" + payQuantity +
                 ", createdAt=" + createdAt +
                 '}';

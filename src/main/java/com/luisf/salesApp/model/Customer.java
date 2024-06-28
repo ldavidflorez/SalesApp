@@ -9,7 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "customers")
-@JsonIgnoreProperties(value = {"orders", "payments", "hibernateLazyInitializer"})
+@JsonIgnoreProperties(value = {"orders", "payments", "items", "hibernateLazyInitializer"})
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +40,9 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     private List<Payment> payments;
+
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+    private List<Items> items;
 
     public Long getId() {
         return id;

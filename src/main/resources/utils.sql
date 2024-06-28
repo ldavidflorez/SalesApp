@@ -178,3 +178,83 @@ CALL CreateNewOrder(
 );
 -- Check the value of @status
 SELECT @status;
+
+-- Stored procedure for insert new payment
+DELIMITER //
+
+CREATE PROCEDURE InsertNewPayment(
+    IN p_orderId BIGINT,
+    IN p_customerId BIGINT,
+    IN p_payQuantity DECIMAL(10, 2),
+    OUT paymentId BIGINT
+)
+BEGIN
+    DECLARE completeFees INT;
+    DECLARE remainingFees INT;
+    DECLARE orderType VARCHAR(255);
+    DECLARE initDate DATETIME;
+    DECLARE nextCollectionDate DATETIME;
+    DECLARE errorOccurred BOOLEAN DEFAULT FALSE;
+
+    -- Start transaction
+    START TRANSACTION;
+
+    -- Insert new payment
+    INSERT INTO payments (order_id, customer_id, pay_quantity, created_at)
+    VALUES (p_orderId, p_customerId, p_payQuantity, NOW());
+
+    -- Get the last inserted payment ID
+    SET paymentId = LAST_INSERT_ID();
+
+    -- Get the current complete_fees, remaining_fees, and order type
+    SELECT complete_fees, remaining_fees, type, init_date
+    INTO completeFees, remainingFees, orderType, initDate
+    FROM orders
+    WHERE id = p_orderId;
+
+    -- Increment complete_fees and decrement remaining_fees
+    SET completeFees = completeFees + 1;
+    SET remainingFees = remainingFees - 1;
+
+    -- Ensure complete_fees does not exceed the initial remaining_fees
+    IF completeFees > (completeFees + remainingFees) THEN
+        -- Set error flag
+        SET errorOccurred = TRUE;
+    ELSE
+        -- Compute next_collection_date based on order type
+        IF orderType = 'FEE_15' THEN
+            SET nextCollectionDate = DATE_ADD(initDate, INTERVAL (1 + completeFees) * 15 DAY);
+        ELSEIF orderType = 'FEE_30' THEN
+            SET nextCollectionDate = DATE_ADD(initDate, INTERVAL (1 + completeFees) * 30 DAY);
+        END IF;
+
+        -- Update the order with the new fee counts and status if complete
+        UPDATE orders
+        SET complete_fees = completeFees,
+            remaining_fees = remainingFees,
+            status = IF(remainingFees = 0, 'Completed', status),
+            next_collection_date = IF(remainingFees = 0, NULL, nextCollectionDate)
+        WHERE id = p_orderId;
+    END IF;
+
+    -- Check for errors and rollback if any
+    IF errorOccurred THEN
+        ROLLBACK;
+        SET paymentId = 0;
+    ELSE
+        COMMIT;
+    END IF;
+
+END //
+
+DELIMITER ;
+
+CALL InsertNewPayment(
+    5, -- orderId
+    2, -- customerId
+    18.35, -- payQuantity
+    @paymentId -- OUT parameter
+);
+
+SELECT @paymentId; -- Check the ID of the inserted payment
+
