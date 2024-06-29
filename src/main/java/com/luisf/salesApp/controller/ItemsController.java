@@ -3,11 +3,9 @@ package com.luisf.salesApp.controller;
 import com.luisf.salesApp.model.Items;
 import com.luisf.salesApp.service.ItemsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,8 +17,9 @@ public class ItemsController {
     private ItemsService itemsService;
 
     @GetMapping
-    List<Items> getAll(){
-        return itemsService.getAll();
+    Page<Items> getAll(@RequestParam(defaultValue = "0") int pageNo,
+                       @RequestParam(defaultValue = "10") int pageSize){
+        return itemsService.getAll(pageNo, pageSize);
     }
 
     @GetMapping("/{id}")

@@ -1,6 +1,7 @@
 package com.luisf.salesApp.service;
 
 import com.luisf.salesApp.model.Product;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,9 +9,9 @@ import java.util.Optional;
 public interface ProductService {
     void save(Product product);
 
-    List<Product> getAll();
+    Page<Product> getAll(int pageNo, int pageSize);
 
-    List<Product> getAllByStatus(boolean status);
+    Page<Product> getAllByStatus(boolean status, int pageNo, int pageSize);
 
     Optional<Product> getById(Long id);
 

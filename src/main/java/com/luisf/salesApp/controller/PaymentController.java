@@ -18,8 +18,9 @@ public class PaymentController {
     private PaymentService paymentService;
 
     @GetMapping
-    List<PaymentDto> getAll(){
-        return paymentService.getAll();
+    List<PaymentDto> getAll(@RequestParam(defaultValue = "0") int pageNo,
+                            @RequestParam(defaultValue = "10") int pageSize){
+        return paymentService.getAll(pageNo, pageSize);
     }
 
     @GetMapping("/{id}")

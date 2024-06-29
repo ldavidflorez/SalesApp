@@ -2,12 +2,13 @@ package com.luisf.salesApp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "delays")
-@JsonIgnoreProperties(value = {"hibernateLazyInitializer"})
+@JsonIgnoreProperties(value = {"customer", "order", "hibernateLazyInitializer"})
 public class Delay {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +29,8 @@ public class Delay {
     @Column(name = "days_of_delay", nullable = false)
     private int daysOfDelay;
 
-    @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     public LocalDateTime getCreatedAt() {

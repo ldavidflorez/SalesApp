@@ -5,6 +5,9 @@ import com.luisf.salesApp.dto.PaymentInsertDto;
 import com.luisf.salesApp.model.Payment;
 import com.luisf.salesApp.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,8 +19,9 @@ public class PaymentServiceImpl implements PaymentService{
     private PaymentRepository paymentRepository;
 
     @Override
-    public List<PaymentDto> getAll() {
-        return paymentRepository.findAll().stream().map(p -> {
+    public List<PaymentDto> getAll(int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        return paymentRepository.findAll(pageable).stream().map(p -> {
             PaymentDto pDto = new PaymentDto();
 
             pDto.setId(p.getId());

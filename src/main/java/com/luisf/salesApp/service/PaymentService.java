@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PaymentService {
-    List<PaymentDto> getAll();
+    List<PaymentDto> getAll(int pageNo, int pageSize);
 
     Optional<PaymentDto> getById(Long id);
 

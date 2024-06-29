@@ -3,6 +3,9 @@ package com.luisf.salesApp.service;
 import com.luisf.salesApp.model.Product;
 import com.luisf.salesApp.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,13 +22,15 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public List<Product> getAll() {
-        return productRepository.findAll();
+    public Page<Product> getAll(int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        return productRepository.findAll(pageable);
     }
 
     @Override
-    public List<Product> getAllByStatus(boolean status) {
-        return productRepository.getAllByStatus(status);
+    public Page<Product> getAllByStatus(boolean status, int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        return productRepository.getAllByStatus(status, pageable);
     }
 
     @Override

@@ -3,6 +3,9 @@ package com.luisf.salesApp.service;
 import com.luisf.salesApp.model.Items;
 import com.luisf.salesApp.repository.ItemsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,8 +17,9 @@ public class ItemsServiceImpl implements ItemsService{
     private ItemsRepository itemsRepository;
 
     @Override
-    public List<Items> getAll() {
-        return itemsRepository.findAll();
+    public Page<Items> getAll(int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        return itemsRepository.findAll(pageable);
     }
 
     @Override

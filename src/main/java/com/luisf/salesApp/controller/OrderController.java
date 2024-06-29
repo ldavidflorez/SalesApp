@@ -4,6 +4,7 @@ import com.luisf.salesApp.dto.OrderInsertDto;
 import com.luisf.salesApp.model.Order;
 import com.luisf.salesApp.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,9 @@ public class OrderController {
     private OrderService orderService;
 
     @GetMapping
-    public List<Order> getAll() {
-        return orderService.getAll();
+    public Page<Order> getAll(@RequestParam(defaultValue = "0") int pageNo,
+                              @RequestParam(defaultValue = "10") int pageSize) {
+        return orderService.getAll(pageNo, pageSize);
     }
 
     @GetMapping("/{id}")
@@ -37,7 +39,6 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<Order> createProduct(@RequestBody OrderInsertDto order) {
         Optional<Order> newOrderOptional =  orderService.save(order);
-        if (newOrderOptional.isEmpty()) return ResponseEntity.internalServerError().build();
-        return new ResponseEntity<Order>(newOrderOptional.get(),null, HttpStatus.CREATED);
+        return newOrderOptional.map(value -> new ResponseEntity<>(value, null, HttpStatus.CREATED)).orElseGet(() -> ResponseEntity.internalServerError().build());
     }
 }

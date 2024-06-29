@@ -5,7 +5,12 @@ import com.luisf.salesApp.model.Customer;
 import com.luisf.salesApp.model.Order;
 import com.luisf.salesApp.model.Payment;
 import com.luisf.salesApp.repository.CustomerRepository;
+import com.luisf.salesApp.repository.OrderRepository;
+import com.luisf.salesApp.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -18,6 +23,12 @@ import java.util.Optional;
 public class CustomerServiceImpl implements CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     @Override
     public CustomerDto save(Customer customer) {
@@ -34,10 +45,11 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerDto> getAll() {
+    public List<CustomerDto> getAll(int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
         List<CustomerDto> customerDtos = new ArrayList<>();
 
-        List<Customer> customers = customerRepository.findAll();
+        Page<Customer> customers = customerRepository.findAll(pageable);
 
         for(Customer customer : customers){
             CustomerDto customerDto = new CustomerDto();
@@ -117,10 +129,11 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<Order> getAllOrders(Long customerId) {
+    public Page<Order> getAllOrders(Long customerId, int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found"));
-        return customer.getOrders();
+        return orderRepository.findAllByCustomerId(customerId, pageable);
     }
 
     @Override
@@ -130,10 +143,11 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<Payment> getAllPayments(Long customerId) {
+    public Page<Payment> getAllPayments(Long customerId, int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
         Customer customer = customerRepository.findById(customerId).
                 orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "customer not found"));
-        return customer.getPayments();
+        return paymentRepository.findAllByCustomerId(customerId, pageable);
     }
 
     @Override

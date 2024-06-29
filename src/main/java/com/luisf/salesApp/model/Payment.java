@@ -2,6 +2,7 @@ package com.luisf.salesApp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ public class Payment {
     @Column(name = "pay_quantity", nullable = false)
     private BigDecimal payQuantity;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

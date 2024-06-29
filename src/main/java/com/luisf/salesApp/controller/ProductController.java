@@ -3,6 +3,7 @@ package com.luisf.salesApp.controller;
 import com.luisf.salesApp.model.Product;
 import com.luisf.salesApp.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +18,16 @@ public class ProductController {
     private ProductService productService;
 
     @GetMapping
-    public List<Product> getAll() {
-        return productService.getAll();
+    public Page<Product> getAll(@RequestParam(defaultValue = "0") int pageNo,
+                                @RequestParam(defaultValue = "10") int pageSize) {
+        return productService.getAll(pageNo, pageSize);
     }
 
     @GetMapping("/state")
-    public List<Product> getAllByStatus(@RequestParam boolean available) {
-        return productService.getAllByStatus(available);
+    public Page<Product> getAllByStatus(@RequestParam boolean available,
+                                        @RequestParam(defaultValue = "0") int pageNo,
+                                        @RequestParam(defaultValue = "10") int pageSize) {
+        return productService.getAllByStatus(available, pageNo, pageSize);
     }
 
     @GetMapping("/{id}")

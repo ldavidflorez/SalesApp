@@ -258,3 +258,76 @@ CALL InsertNewPayment(
 
 SELECT @paymentId; -- Check the ID of the inserted payment
 
+-- Store procedure for insert new delay
+DELIMITER //
+
+CREATE PROCEDURE SaveNewDelay(
+    IN customerId BIGINT,
+    IN orderId BIGINT,
+    IN surchargePercent DECIMAL(5, 2),
+    IN wayDays INT,
+    OUT resultCode BIGINT
+)
+BEGIN
+    DECLARE nextCollectionDate DATETIME;
+    DECLARE promisedDate DATETIME;
+    DECLARE daysOfDelay INT;
+    DECLARE currentFeeValue DECIMAL(10, 2);
+    DECLARE surchargeAmount DECIMAL(10, 2);
+    DECLARE orderType VARCHAR(255);
+
+    -- Declare variables for error handling
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SET resultCode = -1;
+    END;
+
+    -- Start transaction
+    START TRANSACTION;
+
+    -- Get order type, next collection date, and current fee value from orders table
+    SELECT type, next_collection_date, fee_value
+    INTO orderType, nextCollectionDate, currentFeeValue
+    FROM orders
+    WHERE id = orderId;
+
+    -- Check if order type is CASH
+    IF orderType = 'CASH' THEN
+        SET resultCode = 0;
+        ROLLBACK;
+    ELSE
+        -- Calculate promised date and days of delay
+        SET promisedDate = nextCollectionDate;
+        SET daysOfDelay = DATEDIFF(NOW(), nextCollectionDate);
+
+        -- Calculate surcharge amount based on percentage
+        SET surchargeAmount = currentFeeValue * (surchargePercent / 100);
+
+        -- Insert new record into delays table
+        INSERT INTO delays (customer_id, order_id, promised_date, days_of_delay, created_at)
+        VALUES (customerId, orderId, promisedDate, daysOfDelay, NOW());
+
+        -- Update fee_value in orders table with surcharge amount and new promised date
+        UPDATE orders
+        SET fee_value = fee_value + surchargeAmount,
+            next_collection_date = DATE_ADD(NOW(), INTERVAL wayDays DAY)
+        WHERE id = orderId;
+
+        -- Commit transaction
+        COMMIT;
+
+        -- Set result code to last inserted delay ID
+        SET resultCode = LAST_INSERT_ID();
+    END IF;
+END //
+
+DELIMITER ;
+
+-- Declare a variable to hold the result
+SET @result = 0;
+-- Call the stored procedure with a 10% surcharge
+CALL SaveNewDelay(2, 5, 10.00, 3, @result);
+-- Output the result
+SELECT @result;
+

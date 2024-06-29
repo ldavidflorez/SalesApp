@@ -6,6 +6,7 @@ import com.luisf.salesApp.model.Order;
 import com.luisf.salesApp.model.Payment;
 import com.luisf.salesApp.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +21,9 @@ public class CustomerController {
     private CustomerService customerService;
 
     @GetMapping
-    public List<CustomerDto> getAll() {
-        return customerService.getAll();
+    public List<CustomerDto> getAll(@RequestParam(defaultValue = "0") int pageNo,
+                                    @RequestParam(defaultValue = "10") int pageSize) {
+        return customerService.getAll(pageNo, pageSize);
     }
 
     @GetMapping("/{id}")
@@ -36,8 +38,10 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}/orders")
-    public ResponseEntity<List<Order>> getAllOrders(@PathVariable Long id) {
-        List<Order> orders = customerService.getAllOrders(id);
+    public ResponseEntity<Page<Order>> getAllOrders(@PathVariable Long id,
+                                                    @RequestParam(defaultValue = "0") int pageNo,
+                                                    @RequestParam(defaultValue = "10") int pageSize) {
+        Page<Order> orders = customerService.getAllOrders(id, pageNo, pageSize);
         return ResponseEntity.ok(orders);
     }
 
@@ -48,8 +52,10 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}/payments")
-    public ResponseEntity<List<Payment>> getAllPayments(@PathVariable Long id) {
-        List<Payment> payments = customerService.getAllPayments(id);
+    public ResponseEntity<Page<Payment>> getAllPayments(@PathVariable Long id,
+                                                        @RequestParam(defaultValue = "0") int pageNo,
+                                                        @RequestParam(defaultValue = "10") int pageSize) {
+        Page<Payment> payments = customerService.getAllPayments(id, pageNo, pageSize);
         return ResponseEntity.ok(payments);
     }
 
