@@ -44,6 +44,25 @@ public class Customer {
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     private List<Items> items;
 
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+    private List<Delay> delays;
+
+    public List<Items> getItems() {
+        return items;
+    }
+
+    public void setItems(List<Items> items) {
+        this.items = items;
+    }
+
+    public List<Delay> getDelays() {
+        return delays;
+    }
+
+    public void setDelays(List<Delay> delays) {
+        this.delays = delays;
+    }
+
     public Long getId() {
         return id;
     }
@@ -128,6 +147,8 @@ public class Customer {
                 ", createdAt=" + createdAt +
                 ", orders=" + orders +
                 ", payments=" + payments +
+                ", items=" + items +
+                ", delays=" + delays +
                 '}';
     }
 }

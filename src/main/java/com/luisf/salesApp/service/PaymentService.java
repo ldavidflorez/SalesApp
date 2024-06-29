@@ -1,14 +1,16 @@
 package com.luisf.salesApp.service;
 
+import com.luisf.salesApp.dto.PaymentDto;
+import com.luisf.salesApp.dto.PaymentInsertDto;
 import com.luisf.salesApp.model.Payment;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface PaymentService {
-    List<Payment> getAll();
+    List<PaymentDto> getAll();
 
-    Optional<Payment> getById(Long id);
+    Optional<PaymentDto> getById(Long id);
 
-    Optional<Payment> save(Payment payment);
+    Optional<Payment> save(PaymentInsertDto payment);
 }

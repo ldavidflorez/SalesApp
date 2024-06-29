@@ -42,3 +42,7 @@ INSERT INTO payments (order_id, customer_id, pay_quantity, created_at) VALUES
 (3, 1, 200.50, NOW()),
 (4, 3, 250.25, NOW()),
 (5, 2, 300.00, NOW());
+
+-- Insert dummy data into delays table
+INSERT INTO delays (customer_id, order_id, promised_date, days_of_delay, created_at) VALUES
+(2, 5, DATE_ADD(NOW(), INTERVAL -2 DAY), 2, NOW());

@@ -3,8 +3,6 @@ package com.luisf.salesApp.dto;
 import java.util.List;
 
 public class OrderInsertDto {
-    private Long id;
-
     private Long customerId;
 
     private String type;
@@ -19,14 +17,6 @@ public class OrderInsertDto {
 
     public void setItems(List<ItemsInsertDto> items) {
         this.items = items;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getCustomerId() {
@@ -56,7 +46,6 @@ public class OrderInsertDto {
     @Override
     public String toString() {
         return "OrderInsertDto{" +
-                "id=" + id +
                 ", customerId=" + customerId +
                 ", type='" + type + '\'' +
                 ", timeToPayInDays=" + timeToPayInDays +

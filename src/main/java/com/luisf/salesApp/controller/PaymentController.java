@@ -1,5 +1,7 @@
 package com.luisf.salesApp.controller;
 
+import com.luisf.salesApp.dto.PaymentDto;
+import com.luisf.salesApp.dto.PaymentInsertDto;
 import com.luisf.salesApp.model.Payment;
 import com.luisf.salesApp.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +18,13 @@ public class PaymentController {
     private PaymentService paymentService;
 
     @GetMapping
-    List<Payment> getAll(){
+    List<PaymentDto> getAll(){
         return paymentService.getAll();
     }
 
     @GetMapping("/{id}")
-    ResponseEntity<Optional<Payment>> getById(@PathVariable("id") Long id){
-        Optional<Payment> optionalPayment = paymentService.getById(id);
+    ResponseEntity<Optional<PaymentDto>> getById(@PathVariable("id") Long id){
+        Optional<PaymentDto> optionalPayment = paymentService.getById(id);
 
         if (optionalPayment.isEmpty()){
             return ResponseEntity.notFound().build();
@@ -32,7 +34,7 @@ public class PaymentController {
     }
 
     @PostMapping
-    public Optional<Payment> createPayment(@RequestBody Payment payment) {
+    public Optional<Payment> createPayment(@RequestBody PaymentInsertDto payment) {
         return paymentService.save(payment);
     }
 }
