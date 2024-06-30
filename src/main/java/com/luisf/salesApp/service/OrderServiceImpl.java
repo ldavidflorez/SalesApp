@@ -23,13 +23,13 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private OrderRepository orderRepository;
 
-    @Value("${app.create.order.fee15.increment-factor}")
+    @Value("${app.create.order.fee15.increment-percent}")
     private BigDecimal incrementFee15;
 
     @Value("${app.create.order.fee15.increment.additional}")
     private BigDecimal additionalIncrementFee15;
 
-    @Value("${app.create.order.fee30.increment-factor}")
+    @Value("${app.create.order.fee30.increment-percent}")
     private BigDecimal incrementFee30;
 
     @Value("${app.create.order.fee30.increment.additional}")
@@ -69,7 +69,7 @@ public class OrderServiceImpl implements OrderService {
                     orderStatus, initDate, completeFees, remainingFees, orderInsertDto.getTimeToPayInDays(),
                     itemsJson, increment);
 
-            if (orderId == 0) return Optional.empty();
+            if (orderId == -1) return Optional.empty();
 
             return orderRepository.findById(orderId);
         } catch (JsonProcessingException e) {

@@ -5,7 +5,6 @@ import com.luisf.salesApp.dto.PaymentInsertDto;
 import com.luisf.salesApp.model.Payment;
 import com.luisf.salesApp.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -62,6 +61,9 @@ public class PaymentServiceImpl implements PaymentService{
     public Optional<Payment> save(PaymentInsertDto payment) {
         Long insertedPaymentId = paymentRepository.insertNewPayment(payment.getOrderId(),
                 payment.getCustomerId(), payment.getPayQuantity());
+
+        if (insertedPaymentId == -1) return Optional.empty();
+
         return paymentRepository.findById(insertedPaymentId);
     }
 }

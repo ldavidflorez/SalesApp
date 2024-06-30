@@ -1,4 +1,3 @@
--- Stored procedure for insert new order
 DELIMITER //
 
 CREATE PROCEDURE CreateNewOrder(
@@ -11,13 +10,14 @@ CREATE PROCEDURE CreateNewOrder(
     IN timeToPayInDays INT,
     IN itemsJson TEXT,
     IN increment DECIMAL(10, 2),
-    OUT orderIdGenerated INT
+    OUT orderIdGenerated BIGINT
 )
 BEGIN
     DECLARE totalItems INT DEFAULT 0;
     DECLARE totalPrice DECIMAL(10, 2) DEFAULT 0.00;
     DECLARE item JSON;
     DECLARE itemCount INT DEFAULT 0;
+    DECLARE customerCount INT DEFAULT 0;
     DECLARE productId BIGINT;
     DECLARE unitNumber INT;
     DECLARE unitPrice DECIMAL(10, 2);
@@ -29,21 +29,25 @@ BEGIN
     DECLARE state BIT(1);
 
     -- Declare variables for error handling
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
-        SET orderIdGenerated = 0;
-    END;
-
-    -- Declare handler for custom signal
-    DECLARE CONTINUE HANDLER FOR SQLSTATE '45000'
-    BEGIN
-        ROLLBACK;
-        SET orderIdGenerated = 0;
+        SET orderIdGenerated = -1;
     END;
 
     -- Start transaction
     START TRANSACTION;
+
+    -- Check if the customer exists
+    SELECT COUNT(*)
+    INTO customerCount
+    FROM customers
+    WHERE id = customerId;
+
+    IF customerCount = 0 THEN
+        SIGNAL SQLSTATE '45000' SET
+        MESSAGE_TEXT = 'Customer not found';
+    END IF;
 
     -- Parse items JSON
     SET itemCount = JSON_LENGTH(itemsJson);
@@ -61,9 +65,16 @@ BEGIN
         FROM products
         WHERE id = productId;
 
+        -- Check if product exists
+        IF unitPrice IS NULL THEN
+            SIGNAL SQLSTATE '45000' SET
+            MESSAGE_TEXT = 'Product not found';
+        END IF;
+
         -- Check the availability state and rollback if not available
         IF state = b'0' THEN
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Product not available';
+            SIGNAL SQLSTATE '45000' SET
+            MESSAGE_TEXT = 'Product not available';
         END IF;
 
         -- Calculate the price for this item after discount
@@ -143,7 +154,7 @@ CALL CreateNewOrder(
     0, -- remainingFees
     0, -- timeToPayInDays
     '[{"productId": 1, "unitNumber": 2}, {"productId": 2, "unitNumber": 1}]', -- items JSON
-    1.00, -- increment factor
+    0.00, -- increment percent
     @status
 );
 -- Check the value of @status
@@ -158,7 +169,7 @@ CALL CreateNewOrder(
     5, -- remainingFees
     75, -- timeToPayInDays
     '[{"productId": 1, "unitNumber": 2}, {"productId": 2, "unitNumber": 1}]', -- items JSON
-    1.05, -- increment factor
+    5.00, -- increment percent
     @status
 );
 -- Check the value of @status
@@ -173,7 +184,7 @@ CALL CreateNewOrder(
     2, -- remainingFees
     60, -- timeToPayInDays
     '[{"productId": 1, "unitNumber": 2}, {"productId": 2, "unitNumber": 1}]', -- items JSON
-    1.10, -- increment factor
+    10.00, -- increment percent
     @status
 );
 -- Check the value of @status
@@ -191,13 +202,33 @@ CREATE PROCEDURE InsertNewPayment(
 BEGIN
     DECLARE completeFees INT;
     DECLARE remainingFees INT;
+    DECLARE totalFees INT;
+    DECLARE totalDaysToPay INT;
     DECLARE orderType VARCHAR(255);
     DECLARE initDate DATETIME;
     DECLARE nextCollectionDate DATETIME;
     DECLARE errorOccurred BOOLEAN DEFAULT FALSE;
 
+    -- Declare variables for error handling
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SET paymentId = -1;
+    END;
+
     -- Start transaction
     START TRANSACTION;
+
+    -- Get the current complete_fees, remaining_fees, and order type
+    SELECT complete_fees, remaining_fees, type, init_date, time_to_pay_in_days
+    INTO completeFees, remainingFees, orderType, initDate, totalDaysToPay
+    FROM orders
+    WHERE id = p_orderId;
+
+    IF orderType = 'CASH' THEN
+        SIGNAL SQLSTATE '45000' SET
+        MESSAGE_TEXT = 'This procedure is not suitable for CASH type orders';
+    END IF;
 
     -- Insert new payment
     INSERT INTO payments (order_id, customer_id, pay_quantity, created_at)
@@ -206,20 +237,21 @@ BEGIN
     -- Get the last inserted payment ID
     SET paymentId = LAST_INSERT_ID();
 
-    -- Get the current complete_fees, remaining_fees, and order type
-    SELECT complete_fees, remaining_fees, type, init_date
-    INTO completeFees, remainingFees, orderType, initDate
-    FROM orders
-    WHERE id = p_orderId;
-
     -- Increment complete_fees and decrement remaining_fees
     SET completeFees = completeFees + 1;
     SET remainingFees = remainingFees - 1;
 
+    -- Get total fees from database
+    IF orderType = 'FEE_15' THEN
+        SET totalFees = totalDaysToPay / 15;
+    ELSEIF orderType = 'FEE_30' THEN
+        SET totalFees = totalDaysToPay / 30;
+    END IF;
+
     -- Ensure complete_fees does not exceed the initial remaining_fees
-    IF completeFees > (completeFees + remainingFees) THEN
-        -- Set error flag
-        SET errorOccurred = TRUE;
+    IF completeFees > totalFees THEN
+        SIGNAL SQLSTATE '45000' SET
+        MESSAGE_TEXT = 'Cannot pay more fees';
     ELSE
         -- Compute next_collection_date based on order type
         IF orderType = 'FEE_15' THEN
@@ -237,13 +269,7 @@ BEGIN
         WHERE id = p_orderId;
     END IF;
 
-    -- Check for errors and rollback if any
-    IF errorOccurred THEN
-        ROLLBACK;
-        SET paymentId = 0;
-    ELSE
-        COMMIT;
-    END IF;
+    COMMIT;
 
 END //
 
@@ -294,8 +320,8 @@ BEGIN
 
     -- Check if order type is CASH
     IF orderType = 'CASH' THEN
-        SET resultCode = 0;
-        ROLLBACK;
+        SIGNAL SQLSTATE '45000' SET
+        MESSAGE_TEXT = 'This procedure is not suitable for CASH type orders';
     ELSE
         -- Calculate promised date and days of delay
         SET promisedDate = nextCollectionDate;

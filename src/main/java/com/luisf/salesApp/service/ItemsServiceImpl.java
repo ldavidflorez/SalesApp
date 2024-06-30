@@ -8,7 +8,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -28,7 +27,8 @@ public class ItemsServiceImpl implements ItemsService{
     }
 
     @Override
-    public List<Items> getItemsById(Long customerId) {
-        return itemsRepository.getItemsById(customerId);
+    public Page<Items> getItemsById(Long customerId, int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        return itemsRepository.getItemsById(customerId, pageable);
     }
 }

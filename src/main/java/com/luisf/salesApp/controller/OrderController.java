@@ -37,7 +37,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<Order> createProduct(@RequestBody OrderInsertDto order) {
+    public ResponseEntity<Order> createOrder(@RequestBody OrderInsertDto order) {
         Optional<Order> newOrderOptional =  orderService.save(order);
         return newOrderOptional.map(value -> new ResponseEntity<>(value, null, HttpStatus.CREATED)).orElseGet(() -> ResponseEntity.internalServerError().build());
     }

@@ -11,5 +11,5 @@ public interface ItemsService {
 
     Optional<Items> getById(Long id);
 
-    List<Items> getItemsById(Long customerId);
+    Page<Items> getItemsById(Long customerId, int pageNo, int pageSize);
 }

@@ -34,7 +34,9 @@ public class ItemsController {
     }
 
     @GetMapping("users/{customerId}")
-    List<Items> getItemsById(@PathVariable("customerId") Long customerId){
-        return itemsService.getItemsById(customerId);
+    Page<Items> getItemsById(@PathVariable("customerId") Long customerId,
+                             @RequestParam(defaultValue = "0") int pageNo,
+                             @RequestParam(defaultValue = "10") int pageSize){
+        return itemsService.getItemsById(customerId, pageNo, pageSize);
     }
 }
