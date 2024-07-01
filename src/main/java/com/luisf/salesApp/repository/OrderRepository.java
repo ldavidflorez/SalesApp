@@ -9,15 +9,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, Long> {
+public interface OrderRepository extends JpaRepository<Order, Long>, OrderRepositoryCustom {
     Page<Order> findAllByCustomerId(Long customerId, Pageable pageable);
-
-    @Procedure(name = "CreateNewOrder")
-    Long createNewOrder(@Param("customerId") Long customerId, @Param("orderType") String orderType,
-                        @Param("orderStatus") String orderStatus, @Param("initDate") String initDate,
-                        @Param("completeFees") int completeFees, @Param("remainingFees") int remainingFees,
-                        @Param("timeToPayInDays") int timeToPayInDays, @Param("itemsJson") String itemsJson,
-                        @Param("increment") BigDecimal increment);
 }

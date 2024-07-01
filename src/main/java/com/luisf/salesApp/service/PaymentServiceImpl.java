@@ -59,11 +59,9 @@ public class PaymentServiceImpl implements PaymentService{
 
     @Override
     public Optional<Payment> save(PaymentInsertDto payment) {
-        Long insertedPaymentId = paymentRepository.insertNewPayment(payment.getOrderId(),
+        Long spResult = paymentRepository.insertNewPayment(payment.getOrderId(),
                 payment.getCustomerId(), payment.getPayQuantity());
-
-        if (insertedPaymentId == -1) return Optional.empty();
-
-        return paymentRepository.findById(insertedPaymentId);
+        if (spResult < 0) return Optional.empty();
+        return paymentRepository.findById(spResult);
     }
 }

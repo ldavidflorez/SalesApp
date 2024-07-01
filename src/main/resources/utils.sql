@@ -10,8 +10,10 @@ CREATE PROCEDURE CreateNewOrder(
     IN timeToPayInDays INT,
     IN itemsJson TEXT,
     IN increment DECIMAL(10, 2),
-    OUT orderIdGenerated BIGINT
+    OUT spResult BIGINT,
+    OUT spMessage VARCHAR(255)
 )
+`proc`:
 BEGIN
     DECLARE totalItems INT DEFAULT 0;
     DECLARE totalPrice DECIMAL(10, 2) DEFAULT 0.00;
@@ -32,7 +34,9 @@ BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
-        SET orderIdGenerated = -1;
+        -- Unknown error
+        SET spResult = -1;
+        SET spMessage = 'Unknown error';
     END;
 
     -- Start transaction
@@ -45,12 +49,23 @@ BEGIN
     WHERE id = customerId;
 
     IF customerCount = 0 THEN
-        SIGNAL SQLSTATE '45000' SET
-        MESSAGE_TEXT = 'Customer not found';
+        COMMIT;
+        -- Customer not found
+        SET spResult = -2;
+        SET spMessage = 'Customer not found';
+        LEAVE `proc`;
     END IF;
 
     -- Parse items JSON
     SET itemCount = JSON_LENGTH(itemsJson);
+
+    IF itemCount = 0 THEN
+        COMMIT;
+        -- Not items inserted
+        SET spResult = -3;
+        SET spMessage = 'No items inserted';
+        LEAVE `proc`;
+    END IF;
 
     -- Loop through the items JSON array
     SET @i = 0;
@@ -67,14 +82,20 @@ BEGIN
 
         -- Check if product exists
         IF unitPrice IS NULL THEN
-            SIGNAL SQLSTATE '45000' SET
-            MESSAGE_TEXT = 'Product not found';
+            COMMIT;
+            -- Product not found
+            SET spResult = -4;
+            SET spMessage = 'Product not found';
+            LEAVE `proc`;
         END IF;
 
         -- Check the availability state and rollback if not available
         IF state = b'0' THEN
-            SIGNAL SQLSTATE '45000' SET
-            MESSAGE_TEXT = 'Product not available';
+            COMMIT;
+            -- Product not available
+            SET spResult = -5;
+            SET spMessage = 'Product not available';
+            LEAVE `proc`;
         END IF;
 
         -- Calculate the price for this item after discount
@@ -140,7 +161,8 @@ BEGIN
     COMMIT;
 
     -- Set id of generated order
-    SET orderIdGenerated = @orderId;
+    SET spResult = @orderId;
+    SET spMessage = 'Order created successfully';
 END //
 
 DELIMITER ;
@@ -155,10 +177,11 @@ CALL CreateNewOrder(
     0, -- timeToPayInDays
     '[{"productId": 1, "unitNumber": 2}, {"productId": 2, "unitNumber": 1}]', -- items JSON
     0.00, -- increment percent
-    @status
+    @spResult,
+    @spMessage
 );
 -- Check the value of @status
-SELECT @status;
+SELECT @spResult, @spMessage;
 
 CALL CreateNewOrder(
     1, -- customerId
@@ -170,10 +193,11 @@ CALL CreateNewOrder(
     75, -- timeToPayInDays
     '[{"productId": 1, "unitNumber": 2}, {"productId": 2, "unitNumber": 1}]', -- items JSON
     5.00, -- increment percent
-    @status
+    @spResult,
+    @spMessage
 );
 -- Check the value of @status
-SELECT @status;
+SELECT @spResult, @spMessage;
 
 CALL CreateNewOrder(
     1, -- customerId
@@ -185,10 +209,11 @@ CALL CreateNewOrder(
     60, -- timeToPayInDays
     '[{"productId": 1, "unitNumber": 2}, {"productId": 2, "unitNumber": 1}]', -- items JSON
     10.00, -- increment percent
-    @status
+    @spResult,
+    @spMessage
 );
 -- Check the value of @status
-SELECT @status;
+SELECT @spResult, @spMessage;
 
 -- Stored procedure for insert new payment
 DELIMITER //
@@ -197,13 +222,16 @@ CREATE PROCEDURE InsertNewPayment(
     IN p_orderId BIGINT,
     IN p_customerId BIGINT,
     IN p_payQuantity DECIMAL(10, 2),
-    OUT paymentId BIGINT
+    OUT spResult BIGINT,
+    OUT spMessage VARCHAR(255)
 )
+`proc`:
 BEGIN
     DECLARE completeFees INT;
     DECLARE remainingFees INT;
     DECLARE totalFees INT;
     DECLARE totalDaysToPay INT;
+    DECLARE customerCount INT;
     DECLARE orderType VARCHAR(255);
     DECLARE initDate DATETIME;
     DECLARE nextCollectionDate DATETIME;
@@ -213,11 +241,27 @@ BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
-        SET paymentId = -1;
+        -- Unknown error
+        SET spResult = -1;
+        SET spMessage = 'Unknown error';
     END;
 
     -- Start transaction
     START TRANSACTION;
+
+    -- Check if the customer exists
+    SELECT COUNT(*)
+    INTO customerCount
+    FROM customers
+    WHERE id = p_customerId;
+
+    IF customerCount = 0 THEN
+        COMMIT;
+        -- Customer not found
+        SET spResult = -2;
+        SET spMessage = 'Customer not found';
+        LEAVE `proc`;
+    END IF;
 
     -- Get the current complete_fees, remaining_fees, and order type
     SELECT complete_fees, remaining_fees, type, init_date, time_to_pay_in_days
@@ -225,9 +269,20 @@ BEGIN
     FROM orders
     WHERE id = p_orderId;
 
+    IF orderType IS NULL THEN
+        COMMIT;
+        -- Order not found
+        SET spResult = -3;
+        SET spMessage = 'Order not found';
+        LEAVE `proc`;
+    END IF;
+
     IF orderType = 'CASH' THEN
-        SIGNAL SQLSTATE '45000' SET
-        MESSAGE_TEXT = 'This procedure is not suitable for CASH type orders';
+        COMMIT;
+        -- Order type cannot be CASH
+        SET spResult = -4;
+        SET spMessage = 'Order type cannot be CASH';
+        LEAVE `proc`;
     END IF;
 
     -- Insert new payment
@@ -235,7 +290,8 @@ BEGIN
     VALUES (p_orderId, p_customerId, p_payQuantity, NOW());
 
     -- Get the last inserted payment ID
-    SET paymentId = LAST_INSERT_ID();
+    SET spResult = LAST_INSERT_ID();
+    SET spMessage = 'Payment inserted successfully';
 
     -- Increment complete_fees and decrement remaining_fees
     SET completeFees = completeFees + 1;
@@ -250,8 +306,11 @@ BEGIN
 
     -- Ensure complete_fees does not exceed the initial remaining_fees
     IF completeFees > totalFees THEN
-        SIGNAL SQLSTATE '45000' SET
-        MESSAGE_TEXT = 'Cannot pay more fees';
+        ROLLBACK;
+        -- Cannot pay more fees
+        SET spResult = -5;
+        SET spMessage = 'Cannot pay more fees';
+        LEAVE `proc`;
     ELSE
         -- Compute next_collection_date based on order type
         IF orderType = 'FEE_15' THEN
@@ -279,10 +338,11 @@ CALL InsertNewPayment(
     5, -- orderId
     2, -- customerId
     18.35, -- payQuantity
-    @paymentId -- OUT parameter
+    @spResult, -- OUT parameter
+    @spMessage -- OUT parameter
 );
 
-SELECT @paymentId; -- Check the ID of the inserted payment
+SELECT @spResult, @spMessage; -- Check the ID of the inserted payment
 
 -- Store procedure for insert new delay
 DELIMITER //
@@ -292,12 +352,15 @@ CREATE PROCEDURE SaveNewDelay(
     IN orderId BIGINT,
     IN surchargePercent DECIMAL(5, 2),
     IN wayDays INT,
-    OUT resultCode BIGINT
+    OUT spResult BIGINT,
+    OUT spMessage VARCHAR(255)
 )
+`proc`:
 BEGIN
     DECLARE nextCollectionDate DATETIME;
     DECLARE promisedDate DATETIME;
     DECLARE daysOfDelay INT;
+    DECLARE customerCount INT;
     DECLARE currentFeeValue DECIMAL(10, 2);
     DECLARE surchargeAmount DECIMAL(10, 2);
     DECLARE orderType VARCHAR(255);
@@ -306,11 +369,27 @@ BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
-        SET resultCode = -1;
+        -- Unknown error
+        SET spResult = -1;
+        SET spMessage = 'Unknown error';
     END;
 
     -- Start transaction
     START TRANSACTION;
+
+    -- Check if the customer exists
+    SELECT COUNT(*)
+    INTO customerCount
+    FROM customers
+    WHERE id = customerId;
+
+    IF customerCount = 0 THEN
+        COMMIT;
+        -- Customer not found
+        SET spResult = -2;
+        SET spMessage = 'Customer not found';
+        LEAVE `proc`;
+    END IF;
 
     -- Get order type, next collection date, and current fee value from orders table
     SELECT type, next_collection_date, fee_value
@@ -318,10 +397,22 @@ BEGIN
     FROM orders
     WHERE id = orderId;
 
+    -- Check if order exists
+    IF orderType IS NULL THEN
+        COMMIT;
+        -- order not found
+        SET spResult = -3;
+        SET spMessage = 'Order not found';
+        LEAVE `proc`;
+    END IF;
+
     -- Check if order type is CASH
     IF orderType = 'CASH' THEN
-        SIGNAL SQLSTATE '45000' SET
-        MESSAGE_TEXT = 'This procedure is not suitable for CASH type orders';
+        COMMIT;
+        -- This procedure is not suitable for CASH type orders
+        SET spResult = -4;
+        SET spMessage = 'Procedure not suitable for CASH type orders';
+        LEAVE `proc`;
     ELSE
         -- Calculate promised date and days of delay
         SET promisedDate = nextCollectionDate;
@@ -344,16 +435,19 @@ BEGIN
         COMMIT;
 
         -- Set result code to last inserted delay ID
-        SET resultCode = LAST_INSERT_ID();
+        SET spResult = LAST_INSERT_ID();
+        SET spMessage = 'Delay saved successfully';
     END IF;
 END //
 
 DELIMITER ;
 
 -- Declare a variable to hold the result
-SET @result = 0;
--- Call the stored procedure with a 10% surcharge
-CALL SaveNewDelay(2, 5, 10.00, 3, @result);
--- Output the result
-SELECT @result;
+SET @spResult = 0;
+SET @spMessage = '';
 
+-- Call the stored procedure with a 10% surcharge
+CALL SaveNewDelay(2, 5, 10.00, 3, @spResult, @spMessage);
+
+-- Output the result
+SELECT @spResult, @spMessage;

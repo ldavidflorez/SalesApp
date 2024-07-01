@@ -52,8 +52,8 @@ public class DelayServiceImpl implements DelayService {
 
     @Override
     public Optional<Delay> save(DelayInsertDto delay) {
-        Long result = delayRepository.saveNewDelay(delay.getCustomerId(), delay.getOrderId(), surchargeIncrement, wayDays);
-        if (result == -1) return Optional.empty();
-        return  delayRepository.findById(result);
+        Long spResult = delayRepository.saveNewDelay(delay.getCustomerId(), delay.getOrderId(), surchargeIncrement, wayDays);
+        if (spResult < 0) return Optional.empty();
+        return  delayRepository.findById(spResult);
     }
 }

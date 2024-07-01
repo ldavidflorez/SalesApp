@@ -1,6 +1,7 @@
 package com.luisf.salesApp.controller;
 
 import com.luisf.salesApp.dto.OrderInsertDto;
+import com.luisf.salesApp.dto.OrderSaveDto;
 import com.luisf.salesApp.model.Order;
 import com.luisf.salesApp.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +38,13 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody OrderInsertDto order) {
-        Optional<Order> newOrderOptional =  orderService.save(order);
-        return newOrderOptional.map(value -> new ResponseEntity<>(value, null, HttpStatus.CREATED)).orElseGet(() -> ResponseEntity.internalServerError().build());
+    public ResponseEntity<?> createOrder(@RequestBody OrderInsertDto order) {
+        OrderSaveDto newOrderDto =  orderService.save(order);
+        Order newOrder = newOrderDto.getOrder();
+        String message = newOrderDto.getMessage();
+        if (newOrder == null) {
+            return ResponseEntity.internalServerError().body(message);
+        }
+        return ResponseEntity.ok(newOrder);
     }
 }

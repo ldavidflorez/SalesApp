@@ -3,6 +3,7 @@ package com.luisf.salesApp.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.luisf.salesApp.dto.OrderInsertDto;
+import com.luisf.salesApp.dto.OrderSaveDto;
 import com.luisf.salesApp.model.Order;
 import com.luisf.salesApp.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +11,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -36,7 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private BigDecimal additionalIncrementFee30;
 
     @Override
-    public Optional<Order> save(OrderInsertDto orderInsertDto) {
+    public OrderSaveDto save(OrderInsertDto orderInsertDto) {
         String orderStatus = "Pending";
 
         LocalDateTime currentDate = LocalDateTime.now();
@@ -65,13 +68,34 @@ public class OrderServiceImpl implements OrderService {
 
         try {
             String itemsJson = mapper.writeValueAsString(orderInsertDto.getItems());
-            Long orderId = orderRepository.createNewOrder(orderInsertDto.getCustomerId(), orderInsertDto.getType(),
-                    orderStatus, initDate, completeFees, remainingFees, orderInsertDto.getTimeToPayInDays(),
+
+            Map<String, Object> result = orderRepository.createNewOrder(orderInsertDto.getCustomerId(),
+                    orderInsertDto.getType(), orderStatus, initDate, completeFees, remainingFees,
+                    orderInsertDto.getTimeToPayInDays(),
                     itemsJson, increment);
 
-            if (orderId == -1) return Optional.empty();
+            Long spResult = (Long) result.get("spResult");
+            String spMessage = (String) result.get("spMessage");
 
-            return orderRepository.findById(orderId);
+            OrderSaveDto orderSaveDto = new OrderSaveDto();
+
+            if (spResult < 0) {
+                orderSaveDto.setOrder(null);
+                orderSaveDto.setMessage(spMessage);
+                return orderSaveDto;
+            }
+
+            Optional<Order> optionalNewOrder = orderRepository.findById(spResult);
+
+            if (optionalNewOrder.isEmpty()) {
+                orderSaveDto.setOrder(null);
+                orderSaveDto.setMessage("Inserted order not found");
+                return  orderSaveDto;
+            }
+
+            orderSaveDto.setOrder(optionalNewOrder.get());
+            orderSaveDto.setMessage(spMessage);
+            return  orderSaveDto;
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
