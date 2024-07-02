@@ -3,7 +3,7 @@ package com.luisf.salesApp.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.luisf.salesApp.dto.OrderInsertDto;
-import com.luisf.salesApp.dto.OrderSaveDto;
+import com.luisf.salesApp.dto.OrderSaveInternalDto;
 import com.luisf.salesApp.model.Order;
 import com.luisf.salesApp.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -39,7 +37,7 @@ public class OrderServiceImpl implements OrderService {
     private BigDecimal additionalIncrementFee30;
 
     @Override
-    public OrderSaveDto save(OrderInsertDto orderInsertDto) {
+    public OrderSaveInternalDto save(OrderInsertDto orderInsertDto) {
         String orderStatus = "Pending";
 
         LocalDateTime currentDate = LocalDateTime.now();
@@ -77,25 +75,25 @@ public class OrderServiceImpl implements OrderService {
             Long spResult = (Long) result.get("spResult");
             String spMessage = (String) result.get("spMessage");
 
-            OrderSaveDto orderSaveDto = new OrderSaveDto();
+            OrderSaveInternalDto orderSaveInternalDto = new OrderSaveInternalDto();
 
             if (spResult < 0) {
-                orderSaveDto.setOrder(null);
-                orderSaveDto.setMessage(spMessage);
-                return orderSaveDto;
+                orderSaveInternalDto.setOrder(null);
+                orderSaveInternalDto.setMessage(spMessage);
+                return orderSaveInternalDto;
             }
 
             Optional<Order> optionalNewOrder = orderRepository.findById(spResult);
 
             if (optionalNewOrder.isEmpty()) {
-                orderSaveDto.setOrder(null);
-                orderSaveDto.setMessage("Inserted order not found");
-                return  orderSaveDto;
+                orderSaveInternalDto.setOrder(null);
+                orderSaveInternalDto.setMessage("Inserted order not found");
+                return orderSaveInternalDto;
             }
 
-            orderSaveDto.setOrder(optionalNewOrder.get());
-            orderSaveDto.setMessage(spMessage);
-            return  orderSaveDto;
+            orderSaveInternalDto.setOrder(optionalNewOrder.get());
+            orderSaveInternalDto.setMessage(spMessage);
+            return orderSaveInternalDto;
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

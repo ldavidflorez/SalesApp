@@ -232,6 +232,7 @@ BEGIN
     DECLARE totalFees INT;
     DECLARE totalDaysToPay INT;
     DECLARE customerCount INT;
+    DECLARE feeValue DECIMAL(38, 2);
     DECLARE orderType VARCHAR(255);
     DECLARE initDate DATETIME;
     DECLARE nextCollectionDate DATETIME;
@@ -264,8 +265,8 @@ BEGIN
     END IF;
 
     -- Get the current complete_fees, remaining_fees, and order type
-    SELECT complete_fees, remaining_fees, type, init_date, time_to_pay_in_days
-    INTO completeFees, remainingFees, orderType, initDate, totalDaysToPay
+    SELECT complete_fees, remaining_fees, type, init_date, time_to_pay_in_days, fee_value
+    INTO completeFees, remainingFees, orderType, initDate, totalDaysToPay, feeValue
     FROM orders
     WHERE id = p_orderId;
 
@@ -282,6 +283,14 @@ BEGIN
         -- Order type cannot be CASH
         SET spResult = -4;
         SET spMessage = 'Order type cannot be CASH';
+        LEAVE `proc`;
+    END IF;
+
+    IF p_payQuantity != feeValue THEN
+        COMMIT;
+        -- Order fee value does not match
+        SET spResult = -5;
+        SET spMessage = 'The value to be paid does not match the record in the database';
         LEAVE `proc`;
     END IF;
 
@@ -308,7 +317,7 @@ BEGIN
     IF completeFees > totalFees THEN
         ROLLBACK;
         -- Cannot pay more fees
-        SET spResult = -5;
+        SET spResult = -6;
         SET spMessage = 'Cannot pay more fees';
         LEAVE `proc`;
     ELSE

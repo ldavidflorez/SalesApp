@@ -1,18 +1,18 @@
 package com.luisf.salesApp.dto;
 
-import com.luisf.salesApp.model.Order;
+import com.luisf.salesApp.model.Payment;
 
-public class OrderSaveDto {
-    private Order order;
+public class PaymentSaveInternalDto {
+    private Payment payment;
 
     private String message;
 
-    public Order getOrder() {
-        return order;
+    public Payment getPayment() {
+        return payment;
     }
 
-    public void setOrder(Order order) {
-        this.order = order;
+    public void setPayment(Payment payment) {
+        this.payment = payment;
     }
 
     public String getMessage() {
@@ -25,8 +25,8 @@ public class OrderSaveDto {
 
     @Override
     public String toString() {
-        return "OrderCreationResponse{" +
-                "order=" + order +
+        return "PaymentSaveInternalDto{" +
+                "payment=" + payment +
                 ", message='" + message + '\'' +
                 '}';
     }

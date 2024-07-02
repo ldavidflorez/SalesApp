@@ -1,6 +1,7 @@
 package com.luisf.salesApp.controller;
 
 import com.luisf.salesApp.dto.DelayInsertDto;
+import com.luisf.salesApp.dto.DelaySaveInternalDto;
 import com.luisf.salesApp.model.Delay;
 import com.luisf.salesApp.service.DelayService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +36,13 @@ public class DelayController {
     }
 
     @PostMapping
-    public ResponseEntity<Delay> createDelay(@RequestBody DelayInsertDto delayInsertDto) {
-        Optional<Delay> delayOptional = delayService.save(delayInsertDto);
-        return delayOptional.map(delay -> new ResponseEntity<>(delay, null, HttpStatus.CREATED)).orElseGet(() -> ResponseEntity.internalServerError().build());
+    public ResponseEntity<?> createDelay(@RequestBody DelayInsertDto delayInsertDto) {
+        DelaySaveInternalDto newDelayDto =  delayService.save(delayInsertDto);
+        Delay newDelay = newDelayDto.getDelay();
+        String message = newDelayDto.getMessage();
+        if (newDelay == null) {
+            return ResponseEntity.internalServerError().body(message);
+        }
+        return new ResponseEntity<Delay>(newDelay, null, HttpStatus.CREATED);
     }
 }

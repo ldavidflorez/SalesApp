@@ -1,6 +1,7 @@
 package com.luisf.salesApp.service;
 
 import com.luisf.salesApp.dto.DelayInsertDto;
+import com.luisf.salesApp.dto.DelaySaveInternalDto;
 import com.luisf.salesApp.model.Customer;
 import com.luisf.salesApp.model.Delay;
 import com.luisf.salesApp.repository.CustomerRepository;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -51,9 +53,31 @@ public class DelayServiceImpl implements DelayService {
     }
 
     @Override
-    public Optional<Delay> save(DelayInsertDto delay) {
-        Long spResult = delayRepository.saveNewDelay(delay.getCustomerId(), delay.getOrderId(), surchargeIncrement, wayDays);
-        if (spResult < 0) return Optional.empty();
-        return  delayRepository.findById(spResult);
+    public DelaySaveInternalDto save(DelayInsertDto delay) {
+        Map<String, Object> result = delayRepository.saveNewDelay(delay.getCustomerId(), delay.getOrderId(),
+                surchargeIncrement, wayDays);
+
+        Long spResult = (Long) result.get("spResult");
+        String spMessage = (String) result.get("spMessage");
+
+        DelaySaveInternalDto delaySaveInternalDto = new DelaySaveInternalDto();
+
+        if (spResult < 0) {
+            delaySaveInternalDto.setDelay(null);
+            delaySaveInternalDto.setMessage(spMessage);
+            return delaySaveInternalDto;
+        }
+
+        Optional<Delay> optionalNewDelay = delayRepository.findById(spResult);
+
+        if (optionalNewDelay.isEmpty()) {
+            delaySaveInternalDto.setDelay(null);
+            delaySaveInternalDto.setMessage("Inserted order not found");
+            return delaySaveInternalDto;
+        }
+
+        delaySaveInternalDto.setDelay(optionalNewDelay.get());
+        delaySaveInternalDto.setMessage(spMessage);
+        return delaySaveInternalDto;
     }
 }

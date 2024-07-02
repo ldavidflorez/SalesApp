@@ -1,6 +1,7 @@
 package com.luisf.salesApp.service;
 
 import com.luisf.salesApp.dto.DelayInsertDto;
+import com.luisf.salesApp.dto.DelaySaveInternalDto;
 import com.luisf.salesApp.model.Delay;
 import org.springframework.data.domain.Page;
 
@@ -13,5 +14,5 @@ public interface DelayService {
 
     Optional<Delay> getById(Long id);
 
-    Optional<Delay> save(DelayInsertDto delay);
+    DelaySaveInternalDto save(DelayInsertDto delay);
 }

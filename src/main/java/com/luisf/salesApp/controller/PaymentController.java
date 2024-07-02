@@ -2,7 +2,7 @@ package com.luisf.salesApp.controller;
 
 import com.luisf.salesApp.dto.PaymentDto;
 import com.luisf.salesApp.dto.PaymentInsertDto;
-import com.luisf.salesApp.model.Order;
+import com.luisf.salesApp.dto.PaymentSaveInternalDto;
 import com.luisf.salesApp.model.Payment;
 import com.luisf.salesApp.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +37,13 @@ public class PaymentController {
     }
 
     @PostMapping
-    public ResponseEntity<Payment> createPayment(@RequestBody PaymentInsertDto payment) {
-        Optional<Payment> paymentOptional =  paymentService.save(payment);
-        return paymentOptional.map(value -> new ResponseEntity<>(value, null, HttpStatus.CREATED)).orElseGet(() -> ResponseEntity.internalServerError().build());
+    public ResponseEntity<?> createPayment(@RequestBody PaymentInsertDto payment) {
+        PaymentSaveInternalDto newPaymentDto =  paymentService.save(payment);
+        Payment newPayment = newPaymentDto.getPayment();
+        String message = newPaymentDto.getMessage();
+        if (newPayment == null) {
+            return ResponseEntity.internalServerError().body(message);
+        }
+        return new ResponseEntity<Payment>(newPayment, null, HttpStatus.CREATED);
     }
 }
