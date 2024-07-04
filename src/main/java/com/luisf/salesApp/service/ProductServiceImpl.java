@@ -48,6 +48,8 @@ public class ProductServiceImpl implements ProductService{
             product.setDescription(newProduct.getDescription());
             product.setBasePrice(newProduct.getBasePrice());
             product.setPerDiscount(newProduct.getPerDiscount());
+            product.setAvailable(newProduct.isAvailable());
+            product.setProductsInStock(newProduct.getProductsInStock());
 
             return Optional.of(productRepository.save(product));
         }

@@ -32,6 +32,9 @@ public class Product {
     @Column(name = "per_discount", nullable = false)
     private BigDecimal perDiscount;
 
+    @Column(name = "products_in_stock")
+    private int productsInStock;
+
     @Column(nullable = false)
     private boolean available;
 
@@ -90,6 +93,14 @@ public class Product {
         this.perDiscount = perDiscount;
     }
 
+    public int getProductsInStock() {
+        return productsInStock;
+    }
+
+    public void setProductsInStock(int productsInStock) {
+        this.productsInStock = productsInStock;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -123,6 +134,8 @@ public class Product {
                 ", description='" + description + '\'' +
                 ", basePrice=" + basePrice +
                 ", perDiscount=" + perDiscount +
+                ", productsInStock=" + productsInStock +
+                ", available=" + available +
                 ", createdAt=" + createdAt +
                 ", items=" + items +
                 '}';

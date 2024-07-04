@@ -21,6 +21,8 @@ BEGIN
     DECLARE itemCount INT DEFAULT 0;
     DECLARE customerCount INT DEFAULT 0;
     DECLARE productId BIGINT;
+    DECLARE productsInStock INT DEFAULT 0;
+    DECLARE newProductsInStock INT DEFAULT 0;
     DECLARE unitNumber INT;
     DECLARE unitPrice DECIMAL(10, 2);
     DECLARE discount DECIMAL(5, 2);
@@ -75,8 +77,8 @@ BEGIN
         SET unitNumber = JSON_UNQUOTE(JSON_EXTRACT(item, '$.unitNumber'));
 
         -- Check if the product exists and get its price, discount, and availability state
-        SELECT base_price, per_discount, available
-        INTO unitPrice, discount, state
+        SELECT base_price, per_discount, available, products_in_stock
+        INTO unitPrice, discount, state, productsInStock
         FROM products
         WHERE id = productId;
 
@@ -98,12 +100,28 @@ BEGIN
             LEAVE `proc`;
         END IF;
 
+        -- Check if product is in stock
+        IF productsInStock < unitNumber THEN
+            COMMIT;
+            -- The product is out of stock
+            SET spResult = -6;
+            SET spMessage = 'the product is out of stock';
+            LEAVE `proc`;
+        END IF;
+
         -- Calculate the price for this item after discount
         SET itemPrice = unitPrice * unitNumber * (1 - discount / 100);
 
         -- Update total items and total price
         SET totalItems = totalItems + unitNumber;
         SET totalPrice = totalPrice + itemPrice;
+
+        -- Update product stock
+        SET newProductsInStock = productsInStock - unitNumber;
+        UPDATE products
+        SET products_in_stock = newProductsInStock,
+            available = IF(newProductsInStock = 0, 0, available)
+        WHERE id = productId;
 
         -- Increment loop counter
         SET @i = @i + 1;
@@ -268,13 +286,14 @@ BEGIN
     SELECT complete_fees, remaining_fees, type, init_date, time_to_pay_in_days, fee_value
     INTO completeFees, remainingFees, orderType, initDate, totalDaysToPay, feeValue
     FROM orders
-    WHERE id = p_orderId;
+    WHERE id = p_orderId
+    AND customer_id = p_customerId;
 
     IF orderType IS NULL THEN
         COMMIT;
-        -- Order not found
+        -- Order not found or has not been assigned to the customer
         SET spResult = -3;
-        SET spMessage = 'Order not found';
+        SET spMessage = 'Order not found or has not been assigned to the customer';
         LEAVE `proc`;
     END IF;
 
@@ -404,14 +423,15 @@ BEGIN
     SELECT type, next_collection_date, fee_value
     INTO orderType, nextCollectionDate, currentFeeValue
     FROM orders
-    WHERE id = orderId;
+    WHERE id = orderId
+    AND customer_id = customerId;
 
-    -- Check if order exists
+    -- Check if order exists or has been assigned to the customer
     IF orderType IS NULL THEN
         COMMIT;
-        -- order not found
+        -- order not found or has been assigned to the customer
         SET spResult = -3;
-        SET spMessage = 'Order not found';
+        SET spMessage = 'Order not found or has been assigned to the customer';
         LEAVE `proc`;
     END IF;
 
