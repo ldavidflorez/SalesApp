@@ -26,6 +26,9 @@ public class Product {
     @Column(nullable = false)
     private String description;
 
+    @Column(nullable = false)
+    private String category;
+
     @Column(name = "base_price", nullable = false)
     private BigDecimal basePrice;
 
@@ -44,6 +47,14 @@ public class Product {
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<Items> items;
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
     public boolean isAvailable() {
         return available;
@@ -132,6 +143,7 @@ public class Product {
                 ", name='" + name + '\'' +
                 ", ref='" + ref + '\'' +
                 ", description='" + description + '\'' +
+                ", category='" + category + '\'' +
                 ", basePrice=" + basePrice +
                 ", perDiscount=" + perDiscount +
                 ", productsInStock=" + productsInStock +

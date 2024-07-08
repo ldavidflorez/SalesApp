@@ -12,6 +12,8 @@ public interface ProductService {
 
     Page<Product> getAllByStatus(boolean status, int pageNo, int pageSize);
 
+    Page<Product> getAllByCategory(String category, int pageNo, int pageSize);
+
     Optional<Product> getById(Long id);
 
     Optional<Product> update(Long id, Product newProduct);

@@ -13,4 +13,7 @@ import java.util.List;
 public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE p.available = :status")
     Page<Product> getAllByStatus(boolean status, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.category = :category")
+    Page<Product> getAllByCategory(String category, Pageable pageable);
 }

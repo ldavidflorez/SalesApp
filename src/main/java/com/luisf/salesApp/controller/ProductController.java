@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -28,6 +27,13 @@ public class ProductController {
                                         @RequestParam(defaultValue = "0") int pageNo,
                                         @RequestParam(defaultValue = "10") int pageSize) {
         return productService.getAllByStatus(available, pageNo, pageSize);
+    }
+
+    @GetMapping("/category")
+    public Page<Product> getAllByCategory(@RequestParam String category,
+                                        @RequestParam(defaultValue = "0") int pageNo,
+                                        @RequestParam(defaultValue = "10") int pageSize) {
+        return productService.getAllByCategory(category, pageNo, pageSize);
     }
 
     @GetMapping("/{id}")

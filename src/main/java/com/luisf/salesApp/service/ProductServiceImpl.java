@@ -33,6 +33,12 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    public Page<Product> getAllByCategory(String category, int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        return productRepository.getAllByCategory(category, pageable);
+    }
+
+    @Override
     public Optional<Product> getById(Long id) {
         return productRepository.findById(id);
     }
